@@ -6,10 +6,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
@@ -17,11 +17,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
-      - name: Proje klasorunu bul ve derle
+      - name: Projeyi hazirla ve derle
         run: |
-          S=$(find . -name settings.gradle -not -path "*/node_modules/*" | head -1)
+          if [ -f DijitalDoktor-AndroidStudio.zip ]; then
+            mkdir -p proje
+            unzip -q -o DijitalDoktor-AndroidStudio.zip -d proje
+            cd proje
+          fi
+          S=$(find . -name settings.gradle | head -1)
           echo "Proje: $S"
           cd "$(dirname "$S")"
+          ls
           gradle assembleDebug --no-daemon --stacktrace
       - uses: actions/upload-artifact@v4
         with:
