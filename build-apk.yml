@@ -2,25 +2,37 @@ name: APK derle
 
 on:
   push:
-    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
-      - name: Debug APK derle
-        run: gradle assembleDebug --no-daemon
+      - name: Android lisanslarini kabul et
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+      - name: Projeyi hazirla ve derle
+        run: |
+          if [ -f DijitalDoktor-AndroidStudio.zip ]; then
+            mkdir -p proje
+            unzip -q -o DijitalDoktor-AndroidStudio.zip -d proje
+            cd proje
+          fi
+          S=$(find . -name settings.gradle | head -1)
+          echo "Proje: $S"
+          cd "$(dirname "$S")"
+          ls
+          gradle assembleDebug --no-daemon --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: DijitalDoktor-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: "**/app-debug.apk"
